@@ -1,4 +1,4 @@
-require('dotenv').config(); // Load environment variables
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -11,18 +11,18 @@ app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-// Serve homepage
+// Homepage
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html');
 });
 
-// -------------------- IN-MEMORY DATABASE --------------------
-const users = {}; // {_id: { username, _id, log: [] }}
+// -------------------- DATABASE --------------------
+const users = {}; // {_id: {username, _id, log: []}}
 let userIdCounter = 1;
 
 // -------------------- USERS --------------------
 
-// Create new user
+// POST /api/users -> create new user
 app.post('/api/users', (req, res) => {
   const { username } = req.body;
   if (!username) return res.json({ error: 'Username required' });
@@ -34,7 +34,7 @@ app.post('/api/users', (req, res) => {
   res.json({ username, _id });
 });
 
-// Get all users
+// GET /api/users -> list all users
 app.get('/api/users', (req, res) => {
   const allUsers = Object.values(users).map(u => ({ username: u.username, _id: u._id }));
   res.json(allUsers);
@@ -42,7 +42,7 @@ app.get('/api/users', (req, res) => {
 
 // -------------------- EXERCISES --------------------
 
-// Add exercise
+// POST /api/users/:_id/exercises -> add exercise
 app.post('/api/users/:_id/exercises', (req, res) => {
   const { _id } = req.params;
   const user = users[_id];
@@ -51,10 +51,11 @@ app.post('/api/users/:_id/exercises', (req, res) => {
   const { description, duration, date } = req.body;
   if (!description || !duration) return res.json({ error: 'Description and duration required' });
 
+  const exerciseDate = date ? new Date(date) : new Date();
   const exercise = {
     description: description.toString(),
     duration: parseInt(duration),
-    date: date ? new Date(date).toDateString() : new Date().toDateString()
+    date: exerciseDate.toDateString()
   };
 
   user.log.push(exercise);
@@ -68,16 +69,20 @@ app.post('/api/users/:_id/exercises', (req, res) => {
   });
 });
 
-// Get exercise log
+// GET /api/users/:_id/logs -> get user exercise log
 app.get('/api/users/:_id/logs', (req, res) => {
   const { _id } = req.params;
   const { from, to, limit } = req.query;
   const user = users[_id];
   if (!user) return res.json({ error: 'User not found' });
 
-  let log = [...user.log];
+  let log = user.log.map(e => ({
+    description: e.description,
+    duration: e.duration,
+    date: e.date
+  }));
 
-  // Filter by from/to dates
+  // Filter by from/to
   if (from) log = log.filter(e => new Date(e.date) >= new Date(from));
   if (to) log = log.filter(e => new Date(e.date) <= new Date(to));
 
@@ -92,7 +97,7 @@ app.get('/api/users/:_id/logs', (req, res) => {
   });
 });
 
-// -------------------- START SERVER --------------------
+// -------------------- SERVER --------------------
 const listener = app.listen(process.env.PORT || 5000, () => {
   console.log('Your app is listening on port ' + listener.address().port);
 });
