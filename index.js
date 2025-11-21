@@ -21,7 +21,7 @@ let nextUserId = 1;
 
 // -------------------- USERS --------------------
 
-// POST /api/users → Create a new user
+// Create new user
 app.post('/api/users', (req, res) => {
   const username = req.body.username;
   if (!username) return res.json({ error: 'Username required' });
@@ -33,7 +33,7 @@ app.post('/api/users', (req, res) => {
   res.json({ username, _id });
 });
 
-// GET /api/users → List all users
+// Get all users
 app.get('/api/users', (req, res) => {
   const userList = Object.values(users).map(u => ({ username: u.username, _id: u._id }));
   res.json(userList);
@@ -41,7 +41,7 @@ app.get('/api/users', (req, res) => {
 
 // -------------------- EXERCISES --------------------
 
-// POST /api/users/:_id/exercises → Add exercise
+// Add exercise
 app.post('/api/users/:_id/exercises', (req, res) => {
   const _id = req.params._id;
   const user = users[_id];
@@ -49,14 +49,12 @@ app.post('/api/users/:_id/exercises', (req, res) => {
 
   const { description, duration, date } = req.body;
 
-  if (!description || !duration) {
-    return res.json({ error: 'Description and duration required' });
-  }
+  if (!description || !duration) return res.json({ error: 'Description and duration required' });
 
   const exerciseDate = date ? new Date(date) : new Date();
   const exercise = {
     description: description.toString(),
-    duration: Number(duration),
+    duration: parseInt(duration),
     date: exerciseDate.toDateString()
   };
 
@@ -71,42 +69,33 @@ app.post('/api/users/:_id/exercises', (req, res) => {
   });
 });
 
-// GET /api/users/:_id/logs → Get full exercise log
+// Get exercise log
 app.get('/api/users/:_id/logs', (req, res) => {
   const _id = req.params._id;
   const user = users[_id];
   if (!user) return res.json({ error: 'User not found' });
 
-  let log = [...user.log];
+  let log = user.log.map(e => ({
+    description: e.description,
+    duration: e.duration,
+    date: e.date
+  }));
 
   // Optional query parameters
   const { from, to, limit } = req.query;
-
-  if (from) {
-    const fromDate = new Date(from);
-    log = log.filter(e => new Date(e.date) >= fromDate);
-  }
-  if (to) {
-    const toDate = new Date(to);
-    log = log.filter(e => new Date(e.date) <= toDate);
-  }
-  if (limit) {
-    log = log.slice(0, Number(limit));
-  }
+  if (from) log = log.filter(e => new Date(e.date) >= new Date(from));
+  if (to) log = log.filter(e => new Date(e.date) <= new Date(to));
+  if (limit) log = log.slice(0, parseInt(limit));
 
   res.json({
     username: user.username,
     _id: user._id,
     count: log.length,
-    log: log.map(e => ({
-      description: e.description,
-      duration: e.duration,
-      date: e.date
-    }))
+    log
   });
 });
 
 // -------------------- SERVER --------------------
-const listener = app.listen(process.env.PORT || 3000, () => {
+const listener = app.listen(process.env.PORT || 5000, () => {
   console.log('Your app is listening on port ' + listener.address().port);
 });
