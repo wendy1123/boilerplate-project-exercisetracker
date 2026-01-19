@@ -1,32 +1,19 @@
 {
   "name": "fcc-exercise-tracker",
   "version": "0.0.1",
-  "description": "A tracker to keep record of your exercises",
+  "description": "A microservice for tracking exercises for freeCodeCamp",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
   "dependencies": {
-    "body-parser": "^1.20.4",
     "cors": "^2.8.5",
-    "dotenv": "^16.6.1",
-    "express": "^4.22.1",
-    "mongoose": "^7.8.8"
-  }
-}
-{
-  "name": "fcc-exercise-tracker",
-  "version": "0.0.1",
-  "description": "A tracker to keep record of your exercises",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js"
+    "dotenv": "^16.0.0",
+    "express": "^4.18.2",
+    "mongoose": "^7.5.0"
   },
-  "dependencies": {
-    "body-parser": "^1.20.4",
-    "cors": "^2.8.5",
-    "dotenv": "^16.6.1",
-    "express": "^4.22.1",
-    "mongoose": "^7.8.8"
+  "engines": {
+    "node": ">=16.0.0"
   }
 }
